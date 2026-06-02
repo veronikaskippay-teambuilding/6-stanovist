@@ -1,9 +1,10 @@
+Mozková olympiáda
 <!DOCTYPE html>
 <html lang="cs">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Teambuilding Game</title>
+<title>Mozková olympiáda</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Luckiest+Guy&display=swap" rel="stylesheet">
 
@@ -35,14 +36,10 @@ img {max-width:260px;}
 <body>
 
 <div id="start">
-  <h2>Mozková olympiáda</h2>
-  <p>Zadejte název vašeho týmu a začněte hru.</p>
-
-  <input id="teamInput" placeholder="Název týmu">
-
-  <br><br>
-
-  <button onclick="saveTeam()">Začít</button>
+<h2>Mozková olympiáda</h2>
+<input id="teamInput" placeholder="Název týmu">
+<br><br>
+<button onclick="saveTeam()">Start</button>
 </div>
 
 <div id="app"></div>
@@ -55,12 +52,8 @@ const station=new URLSearchParams(window.location.search).get("station");
 if(team){startApp();}
 
 function saveTeam(){
-  const teamName = document.getElementById("teamInput").value;
-  if(!teamName) return;
-
-  localStorage.setItem("team", teamName);
-  team = teamName;
-
+  team=document.getElementById("teamInput").value;
+  localStorage.setItem("team",team);
   startApp();
 }
 
