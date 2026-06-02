@@ -215,34 +215,88 @@ function submitNum(){
   ni++; if(ni<num.length) showNum(); else confirmScreen();
 }
 
-//////////////// STÁTY
-const geo=[{img:'images/paraguay.png',opt:['Paraguay','Chile','Peru','Bolívie']},
-{img:'images/vietnam.png',opt:['Thajsko','Vietnam','Laos','Kambodža']}];
+////////////////////////
+// STATION 7 - STÁTY
+////////////////////////
 
-let gi=0,answers=[];
+const geo = [
+{img:'<img src="images/paraguay.png">',opt:['Paraguay','Chile','Peru','Bolívie']},
+{img:'<img src="images/vietnam.png">',opt:['Thajsko','Vietnam','Laos','Kambodža']},
+{img:'<img src="images/japonsko.png">',opt:['Filipíny','Japonsko','Indonésie','Korea']},
+{img:'<img src="images/chile.png">',opt:['Chile','Argentina','Peru','Brazílie']},
+{img:'<img src="images/severni-korea.png">',opt:['Jižní Korea','Čína','Severní Korea','Japonsko']},
+{img:'<img src="images/nizozemsko.png">',opt:['Belgie','Nizozemsko','Německo','Dánsko']},
+{img:'<img src="images/chorvatsko.png">',opt:['Řecko','Chorvatsko','Itálie','Albánie']},
+{img:'<img src="images/novy-zeland.png">',opt:['Austrálie','Nový Zéland','Fidži','Papua']},
+{img:'<img src="images/kuba.png">',opt:['Kuba','Jamajka','Haiti','Bahamy']},
+{img:'<img src="images/gronsko.png">',opt:['Island','Grónsko','Norsko','Kanada']}
+];
 
+let gi = 0;
+let answers = [];
+
+// ✅ ÚVOD
 function geoIntro(){
-  app.innerHTML=`<h3>${team}</h3>
-  <h2>Státy</h2>
-  <p>Podle obrázku urči co je to za stát.</p>
-  <button onclick="startGeo()">Start</button>`;
+  app.innerHTML = `
+    <h3 class="team">Tým: ${team}</h3>
+    <h2>Státy</h2>
+    <p>Podle obrázku urči co je to za stát.</p>
+    <button onclick="startGeo()">Start</button>
+  `;
 }
-function startGeo(){gi=0;answers=[];showGeo();}
+
+// ✅ START
+function startGeo(){
+  gi = 0;
+  answers = [];
+  showGeo();
+}
+
+// ✅ OTÁZKA
 function showGeo(){
-  let q=geo[gi];
-  app.innerHTML=`<h2>${gi+1}</h2>
-  ${q.opt.map(o=>`<button onclick="ansGeo('${o}')">${o}</button>`).join("")}`;
+  let q = geo[gi];
+
+  app.innerHTML = `
+    <h3 class="team">Tým: ${team}</h3>
+    <h2>${gi+1}/10</h2>
+
+    ${q.img}
+
+    <br><br>
+
+    ${q.opt.map(o => `
+      <button onclick="ansGeo('${o}')">${o}</button>
+    `).join("")}
+  `;
 }
+
+// ✅ ODPOVĚĎ
 function ansGeo(a){
   answers.push(a);
   gi++;
-  if(gi<geo.length)showGeo(); else finishGeo();
+
+  if(gi < geo.length){
+    showGeo();
+  } else {
+    finishGeo();
+  }
 }
+
+// ✅ KONEC
 function finishGeo(){
-  app.innerHTML=`<button onclick="submitGeo()">Hotovo</button>`;
+  app.innerHTML = `
+    <h3 class="team">Tým: ${team}</h3>
+    <h2>Hotovo</h2>
+    <p>Dokončili jste kvíz.</p>
+    <button onclick="submitGeo()">Hotovo</button>
+  `;
 }
+
+// ✅ ODESLÁNÍ
 function submitGeo(){
-  answers.forEach((a,i)=>send({station:7,question:i+1,answer:a}));
+  answers.forEach((a,i)=>
+    send({station:7,question:i+1,answer:a})
+  );
   confirmScreen();
 }
 
