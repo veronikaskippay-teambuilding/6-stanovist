@@ -127,24 +127,73 @@ function confirmScreen(){
   `;
 }
 
-////////////////////////////////
-// 1 SLEPEC
-////////////////////////////////
+////////////////////////
+// 1 SLEPEC ✅
+////////////////////////
+
+let timerInterval;
+
+// INSTRUKCE
 function slepec(){
   document.getElementById("app").innerHTML = `
     <h3 class="team">Tým: ${team}</h3>
     <h2>Slepec</h2>
-    <p>Před sebou vidíš obálku, papír a fixy. Jeden člověk z vašeho týmu bude kreslit, ostatní budou radit. V obálce je obrázek, ten se ten co kreslí snaží co nejpřesněji překreslit podle instrukcí od zbytku týmu. Co kreslí nikdy nevidí obrázek. Máte časový limit 3 minuty, během nich musíte obrázek také vyfotit.</p>
+    <p>
+    Před sebou vidíš obálku, papír a fixy. Jeden člověk z vašeho týmu bude kreslit, ostatní budou radit. V obálce je obrázek, ten se ten co kreslí snaží co nejpřesněji překreslit podle instrukcí od zbytku týmu. Co kreslí nikdy nevidí obrázek. Máte časový limit 3 minuty, během nich musíte obrázek také vyfotit.
+    </p>
     <button onclick="startSlepec()">Start</button>
   `;
 }
 
+// START + TIMER + UI
 function startSlepec(){
-  setTimeout(()=>alert("Konec času!"),180000);
+
+  let time = 240; // 4 minuty
+
   document.getElementById("app").innerHTML = `
-    <input type="file" accept="image/*" capture>
-    <button onclick="finishPhoto(1)">Hotovo</button>
+    <h3 class="team">Tým: ${team}</h3>
+    <h2>⏱ Čas: <span id="timer">4:00</span></h2>
+
+    <input id="photoInput" type="file" accept="image/*" capture style="display:none">
+
+    <button onclick="openCamera()">Vyfotit</button>
+    <br><br>
+    <button onclick="finishSlepec()">Hotovo</button>
   `;
+
+  timerInterval = setInterval(() => {
+
+    time--;
+
+    let min = Math.floor(time / 60);
+    let sec = time % 60;
+
+    document.getElementById("timer").innerText =
+      min + ":" + (sec < 10 ? "0" + sec : sec);
+
+    if(time <= 0){
+      clearInterval(timerInterval);
+      alert("Konec času!");
+    }
+
+  }, 1000);
+}
+
+// OTEVŘENÍ FOŤÁKU
+function openCamera(){
+  document.getElementById("photoInput").click();
+}
+
+// ODESLÁNÍ
+function finishSlepec(){
+  clearInterval(timerInterval);
+
+  send({
+    station: 1,
+    answer: "PHOTO DONE"
+  });
+
+  confirmScreen();
 }
 
 ////////////////////////////////
