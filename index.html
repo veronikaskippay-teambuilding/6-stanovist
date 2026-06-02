@@ -407,13 +407,19 @@ function startBD(){
 
   app.innerHTML = `
     <h3 class="team">Tým: ${team}</h3>
-    <h2><span id="bdTimer">0:00</span></h2>
+    <h2>⏱ Čas: <span id="bdTimer">0:00</span></h2>
     <button onclick="stopBD()">Stop</button>
   `;
 
   bdTimer = setInterval(()=>{
     bdTime++;
-    bdTimerDisplay.innerText = formatTime(bdTime);
+
+    let min = Math.floor(bdTime / 60);
+    let sec = bdTime % 60;
+
+    document.getElementById("bdTimer").innerText =
+      min + ":" + (sec < 10 ? "0" + sec : sec);
+
   },1000);
 }
 
