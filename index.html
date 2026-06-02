@@ -35,10 +35,14 @@ img {max-width:260px;}
 <body>
 
 <div id="start">
-<h2>Teambuilding</h2>
-<input id="teamInput" placeholder="Název týmu">
-<br><br>
-<button onclick="saveTeam()">Start</button>
+  <h2>Mozková olympiáda</h2>
+  <p>Zadejte název vašeho týmu a začněte hru.</p>
+
+  <input id="teamInput" placeholder="Název týmu">
+
+  <br><br>
+
+  <button onclick="saveTeam()">Začít</button>
 </div>
 
 <div id="app"></div>
@@ -51,8 +55,12 @@ const station=new URLSearchParams(window.location.search).get("station");
 if(team){startApp();}
 
 function saveTeam(){
-  team=document.getElementById("teamInput").value;
-  localStorage.setItem("team",team);
+  const teamName = document.getElementById("teamInput").value;
+  if(!teamName) return;
+
+  localStorage.setItem("team", teamName);
+  team = teamName;
+
   startApp();
 }
 
