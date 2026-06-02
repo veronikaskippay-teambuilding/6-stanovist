@@ -5,19 +5,93 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Teambuilding Game</title>
 
+<!-- GOOGLE FONTS -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Luckiest+Guy&display=swap" rel="stylesheet">
+
 <style>
-body { font-family: Arial; text-align:center; padding:20px; }
-button { padding:12px; margin:10px; width:230px; }
-textarea { width:90%; height:100px; }
-img { max-width:300px; margin:20px 0; }
+
+body {
+  font-family: 'Poppins', sans-serif;
+  text-align: center;
+  padding: 20px;
+  background: #f5f5f5 url('https://www.transparenttextures.com/patterns/paper.png');
+  color: #1f4bc1;
+}
+
+/* CONTAINER */
+#app, #start {
+  max-width: 460px;
+  margin: auto;
+}
+
+/* NADPIS */
+h2 {
+  font-family: 'Luckiest Guy', cursive;
+  font-size: 52px;
+  margin-bottom: 20px;
+  color: #1f4bc1;
+  letter-spacing: 2px;
+}
+
+/* TEXT */
+p {
+  font-size: 15px;
+  line-height: 1.6;
+  font-weight: 300;
+  margin-bottom: 25px;
+}
+
+/* BUTTON */
+button {
+  background-color: #1f4bc1;
+  color: white;
+  border: none;
+  padding: 15px 25px;
+  border-radius: 40px;
+  font-family: 'Poppins';
+  font-size: 18px;
+  cursor: pointer;
+  width: 220px;
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  background-color: #163a97;
+  transform: scale(1.05);
+}
+
+/* INPUT */
+input, textarea {
+  width: 90%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  margin: 12px 0;
+  font-family: 'Poppins';
+  font-size: 16px;
+}
+
+/* IMAGE */
+img {
+  max-width: 260px;
+  margin: 20px 0;
+}
+
+/* TEAM NAME */
+.team {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 10px;
+}
+
 </style>
 </head>
 
 <body>
 
 <div id="start">
-<h2>Zadej název týmu</h2>
-<input id="teamInput" placeholder="Název týmu">
+<h2>Teambuilding</h2>
+<input id="teamInput" placeholder="Zadej název týmu">
 <br><br>
 <button onclick="saveTeam()">Start</button>
 </div>
@@ -25,6 +99,7 @@ img { max-width:300px; margin:20px 0; }
 <div id="app" style="display:none"></div>
 
 <script>
+
 const scriptURL = "https://script.google.com/macros/s/AKfycbzVIxT_PPm6GRhmVuHvVA6UlFQI93FdNa7PqMkcAUXQRoOxhiwV59Wzbta9D9VWSO1cFQ/exec";
 const params = new URLSearchParams(window.location.search);
 const station = params.get("station");
@@ -46,7 +121,7 @@ function startApp(){
 
   if(!station){
     document.getElementById("app").innerHTML = `
-      <h2>Vítejte 🎉</h2>
+      <h2>Vítejte</h2>
       <p>Naskenujte QR kód stanoviště.</p>
     `;
     return;
@@ -61,7 +136,6 @@ function startApp(){
   if(station==7) geoQuiz();
 }
 
-// ===== SEND =====
 function send(data){
   fetch(scriptURL,{
     method:"POST",
@@ -70,21 +144,19 @@ function send(data){
   });
 }
 
-// ===== CONFIRM =====
 function confirmScreen(){
   document.getElementById("app").innerHTML = `
     <h2>✅ Hotovo, tohle jste zvládli!</h2>
-    <p>Pokračujte na další stanoviště.</p>
   `;
 }
 
-//////////////////////////
-// STATION 1 - SLEPEC
-//////////////////////////
+/* ===== STATIONS ===== */
+
 function slepec(){
   document.getElementById("app").innerHTML = `
+    <h3 class="team">Tým: ${team}</h3>
     <h2>Slepec</h2>
-    <p>Před sebou vidíš obálku, papír a fixy. Jeden člověk z vašeho týmu bude kreslit, ostatní budou radit. V obálce je obrázek, ten se ten co kreslí snaží co nejpřesněji překreslit podle instrukcí od zbytku týmu. Co kreslí nikdy nevidí obrázek. Máte časový limit 3 minuty, během nich musíte obrázek také vyfotit.</p>
+    <p>Před sebou vidíš obálku, papír a fixy... (zkráceno)</p>
     <button onclick="startSlepec()">Start</button>
   `;
 }
@@ -92,43 +164,38 @@ function slepec(){
 function startSlepec(){
   setTimeout(()=>alert("Konec času!"),180000);
   document.getElementById("app").innerHTML = `
-    <h3>Vyfoťte výsledek</h3>
     <input type="file" accept="image/*" capture>
     <button onclick="finishPhoto(1)">Hotovo</button>
   `;
 }
 
-//////////////////////////
-// STATION 2 - TICHÁ POŠTA
-//////////////////////////
+/* FOTO */
+function finishPhoto(s){
+  send({station:s, answer:"PHOTO DONE"});
+  confirmScreen();
+}
+
 function tichaPosta(){
   document.getElementById("app").innerHTML = `
+    <h3 class="team">Tým: ${team}</h3>
     <h2>Tichá pošta</h2>
-    <p>Vidíš před sebou obálku, papír a fixy. Stoupnete si všichni za sebe jako vláček, tak že vidíte na záda svého spoluhráče. Obálku otevírá a vidí pouze jeden z týmu, ten co je na konci. Každý má jeden list papíru a fixu. Poslední s obálkou kreslí na papír, který má položený na zádech spoluhráče před sebou. Pokračuje to dál až k prvnímu ve vláčku, který má výsledný obrázek. Ten je potřeba vyfotit.</p>
+    <p>Vidíš před sebou obálku, papír a fixy...</p>
     <button onclick="startPhoto(2)">Start</button>
   `;
 }
 
 function startPhoto(s){
   document.getElementById("app").innerHTML = `
-    <h3>Vyfoťte výsledek</h3>
     <input type="file" accept="image/*" capture>
     <button onclick="finishPhoto(${s})">Hotovo</button>
   `;
 }
 
-function finishPhoto(s){
-  send({station:s, answer:"PHOTO DONE"});
-  confirmScreen();
-}
-
-//////////////////////////
-// STATION 3 - MEMORY
-//////////////////////////
 function memoryRun(){
   document.getElementById("app").innerHTML = `
+    <h3 class="team">Tým: ${team}</h3>
     <h2>Memory run</h2>
-    <p>Dva hráči z vašeho týmu poběží ke krabici, kde jsou schované předměty, kdy se snažíte zapamatovat co nejvíc z nich. Dvojice běží zpět k týmu, který zapisuje předměty. Máte na to časový limit 4 minuty.</p>
+    <p>Dva hráči z vašeho týmu poběží ke krabici...</p>
     <button onclick="startMemory()">Start</button>
   `;
 }
@@ -146,15 +213,13 @@ function finishMemory(){
   confirmScreen();
 }
 
-//////////////////////////
-// STATION 4 - PUZZLE
-//////////////////////////
 let startTime;
 
 function puzzle(){
   document.getElementById("app").innerHTML = `
+    <h3 class="team">Tým: ${team}</h3>
     <h2>Puzzle</h2>
-    <p>Jeden z vašeho týmu má zavázané oči a podle návodů od zbytku týmu se snaží co nejrychleji složit puzzle.</p>
+    <p>Jeden z vašeho týmu má zavázané oči...</p>
     <button onclick="startTime=Date.now()">Start</button>
     <button onclick="finishPuzzle()">Hotovo</button>
   `;
@@ -166,13 +231,10 @@ function finishPuzzle(){
   confirmScreen();
 }
 
-//////////////////////////
-// STATION 5 - PLAKÁT
-//////////////////////////
 function plakat(){
   document.getElementById("app").innerHTML = `
+    <h3 class="team">Tým: ${team}</h3>
     <h2>Plakát</h2>
-    <p>Máte před sebou obálku, která obsahuje 10 plakátů očíslované 1 až 10. Do otevřeného pole pište jaký si myslíte, že se pod plakátem skrývá film. Pište je postupně hned za sebe, pokud nevíte a nechcete tipovat, napište nevíme.</p>
     <textarea id="p"></textarea>
     <button onclick="finishPlakat()">Odeslat</button>
   `;
@@ -183,26 +245,11 @@ function finishPlakat(){
   confirmScreen();
 }
 
-//////////////////////////
-// STATION 6 - NUMBER
-//////////////////////////
-const numQ = [
-"_ dalmatinů","Fallout _","Apollo _","_ stupňů Fahrenheita",
-"_ Pilots","_ rozhněvaných mužů","Ocean's _",
-"Hlava _","Maroon _","_ věcí, které na tobě nesnáším"
-];
-
+/* NUMBER */
+const numQ = ["_ dalmatinů","Fallout _","Apollo _","_ stupňů Fahrenheita","_ Pilots","_ rozhněvaných mužů","Ocean's _","Hlava _","Maroon _","_ věcí..."];
 let nI=0;
 
 function numberGame(){
-  document.getElementById("app").innerHTML = `
-    <h2>Number</h2>
-    <p>Postupně se vám ukážou slova, ke kterým patří číslo, které musíte odhalit. Např. Bylo nás _ a vy doplníte 5.</p>
-    <button onclick="startNumber()">Start</button>
-  `;
-}
-
-function startNumber(){
   nI=0;
   showNum();
 }
@@ -223,9 +270,7 @@ function submitNum(){
   else confirmScreen();
 }
 
-//////////////////////////
-// STATION 7 - GEO
-//////////////////////////
+/* GEO */
 const geo = [
 {img:'images/paraguay.png',opt:['Paraguay','Chile','Peru','Bolívie']},
 {img:'images/vietnam.png',opt:['Thajsko','Vietnam','Laos','Kambodža']},
@@ -250,7 +295,7 @@ function renderGeo(){
   let q=geo[g];
   document.getElementById("app").innerHTML = `
     <h2>${g+1}/10</h2>
-    <img src="${q.imgopt.map(o=>`<button onclick="answerGeo('${o}')">${o}</button>`).join("")}
+    <img src="${q.imgswerGeo('${o}')">${o}</button>`).join("")}
   `;
 }
 
@@ -267,7 +312,9 @@ function answerGeo(a){
     else confirmScreen();
   },300);
 }
+
 </script>
 
 </body>
 </html>
+``
