@@ -5,11 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Teambuilding Game</title>
 
-<!-- GOOGLE FONTS -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Luckiest+Guy&display=swap" rel="stylesheet">
 
 <style>
-
 body {
   font-family: 'Poppins', sans-serif;
   text-align: center;
@@ -18,49 +16,34 @@ body {
   color: #1f4bc1;
 }
 
-/* CONTAINER */
 #app, #start {
   max-width: 460px;
   margin: auto;
 }
 
-/* NADPIS */
 h2 {
   font-family: 'Luckiest Guy', cursive;
-  font-size: 52px;
+  font-size: 48px;
   margin-bottom: 20px;
-  color: #1f4bc1;
-  letter-spacing: 2px;
 }
 
-/* TEXT */
 p {
   font-size: 15px;
   line-height: 1.6;
-  font-weight: 300;
   margin-bottom: 25px;
 }
 
-/* BUTTON */
 button {
   background-color: #1f4bc1;
   color: white;
   border: none;
   padding: 15px 25px;
   border-radius: 40px;
-  font-family: 'Poppins';
   font-size: 18px;
   cursor: pointer;
   width: 220px;
-  transition: all 0.2s ease;
 }
 
-button:hover {
-  background-color: #163a97;
-  transform: scale(1.05);
-}
-
-/* INPUT */
 input, textarea {
   width: 90%;
   padding: 12px;
@@ -71,19 +54,16 @@ input, textarea {
   font-size: 16px;
 }
 
-/* IMAGE */
 img {
   max-width: 260px;
   margin: 20px 0;
 }
 
-/* TEAM NAME */
 .team {
   font-size: 13px;
   color: #888;
   margin-bottom: 10px;
 }
-
 </style>
 </head>
 
@@ -91,7 +71,7 @@ img {
 
 <div id="start">
 <h2>Teambuilding</h2>
-<input id="teamInput" placeholder="Zadej název týmu">
+<input id="teamInput" placeholder="Název týmu">
 <br><br>
 <button onclick="saveTeam()">Start</button>
 </div>
@@ -99,7 +79,6 @@ img {
 <div id="app" style="display:none"></div>
 
 <script>
-
 const scriptURL = "https://script.google.com/macros/s/AKfycbzVIxT_PPm6GRhmVuHvVA6UlFQI93FdNa7PqMkcAUXQRoOxhiwV59Wzbta9D9VWSO1cFQ/exec";
 const params = new URLSearchParams(window.location.search);
 const station = params.get("station");
@@ -120,10 +99,7 @@ function startApp(){
   document.getElementById("app").style.display="block";
 
   if(!station){
-    document.getElementById("app").innerHTML = `
-      <h2>Vítejte</h2>
-      <p>Naskenujte QR kód stanoviště.</p>
-    `;
+    document.getElementById("app").innerHTML = `<h2>Vítejte</h2><p>Naskenujte QR kód stanoviště.</p>`;
     return;
   }
 
@@ -147,16 +123,18 @@ function send(data){
 function confirmScreen(){
   document.getElementById("app").innerHTML = `
     <h2>✅ Hotovo, tohle jste zvládli!</h2>
+    <p>Pokračujte na další stanoviště.</p>
   `;
 }
 
-/* ===== STATIONS ===== */
-
+////////////////////////////////
+// 1 SLEPEC
+////////////////////////////////
 function slepec(){
   document.getElementById("app").innerHTML = `
     <h3 class="team">Tým: ${team}</h3>
     <h2>Slepec</h2>
-    <p>Před sebou vidíš obálku, papír a fixy... (zkráceno)</p>
+    <p>Před sebou vidíš obálku, papír a fixy. Jeden člověk z vašeho týmu bude kreslit, ostatní budou radit. V obálce je obrázek, ten se ten co kreslí snaží co nejpřesněji překreslit podle instrukcí od zbytku týmu. Co kreslí nikdy nevidí obrázek. Máte časový limit 3 minuty, během nich musíte obrázek také vyfotit.</p>
     <button onclick="startSlepec()">Start</button>
   `;
 }
@@ -169,17 +147,14 @@ function startSlepec(){
   `;
 }
 
-/* FOTO */
-function finishPhoto(s){
-  send({station:s, answer:"PHOTO DONE"});
-  confirmScreen();
-}
-
+////////////////////////////////
+// 2 TICHÁ POŠTA
+////////////////////////////////
 function tichaPosta(){
   document.getElementById("app").innerHTML = `
     <h3 class="team">Tým: ${team}</h3>
     <h2>Tichá pošta</h2>
-    <p>Vidíš před sebou obálku, papír a fixy...</p>
+    <p>Vidíš před sebou obálku, papír a fixy. Stoupnete si všichni za sebe jako vláček, tak že vidíte na záda svého spoluhráče. Obálku otevírá a vidí pouze jeden z týmu, ten co je na konci. Každý má jeden list papíru a fixu. Poslední s obálkou kreslí na papír, který má položený na zádech spoluhráče před sebou. Pokračuje to dál až k prvnímu ve vláčku, který má výsledný obrázek. Ten je potřeba vyfotit.</p>
     <button onclick="startPhoto(2)">Start</button>
   `;
 }
@@ -191,11 +166,19 @@ function startPhoto(s){
   `;
 }
 
+function finishPhoto(s){
+  send({station:s, answer:"PHOTO DONE"});
+  confirmScreen();
+}
+
+////////////////////////////////
+// 3 MEMORY
+////////////////////////////////
 function memoryRun(){
   document.getElementById("app").innerHTML = `
     <h3 class="team">Tým: ${team}</h3>
     <h2>Memory run</h2>
-    <p>Dva hráči z vašeho týmu poběží ke krabici...</p>
+    <p>Dva hráči z vašeho týmu poběží ke krabici, kde jsou schované předměty, kdy se snažíte zapamatovat co nejvíc z nich. Dvojice běží zpět k týmu, který zapisuje předměty. Máte na to časový limit 4 minuty.</p>
     <button onclick="startMemory()">Start</button>
   `;
 }
@@ -213,13 +196,16 @@ function finishMemory(){
   confirmScreen();
 }
 
+////////////////////////////////
+// 4 PUZZLE
+////////////////////////////////
 let startTime;
 
 function puzzle(){
   document.getElementById("app").innerHTML = `
     <h3 class="team">Tým: ${team}</h3>
     <h2>Puzzle</h2>
-    <p>Jeden z vašeho týmu má zavázané oči...</p>
+    <p>Jeden z vašeho týmu má zavázané oči a podle návodů od zbytku týmu se snaží co nejrychleji složit puzzle.</p>
     <button onclick="startTime=Date.now()">Start</button>
     <button onclick="finishPuzzle()">Hotovo</button>
   `;
@@ -231,10 +217,14 @@ function finishPuzzle(){
   confirmScreen();
 }
 
+////////////////////////////////
+// 5 PLAKÁT
+////////////////////////////////
 function plakat(){
   document.getElementById("app").innerHTML = `
     <h3 class="team">Tým: ${team}</h3>
     <h2>Plakát</h2>
+    <p>Máte před sebou obálku, která obsahuje 10 plakátů očíslované 1 až 10. Do otevřeného pole pište jaký si myslíte, že se pod plakátem skrývá film. Pište je postupně hned za sebe, pokud nevíte a nechcete tipovat, napište nevíme.</p>
     <textarea id="p"></textarea>
     <button onclick="finishPlakat()">Odeslat</button>
   `;
@@ -244,77 +234,7 @@ function finishPlakat(){
   send({station:5, answer:document.getElementById("p").value});
   confirmScreen();
 }
-
-/* NUMBER */
-const numQ = ["_ dalmatinů","Fallout _","Apollo _","_ stupňů Fahrenheita","_ Pilots","_ rozhněvaných mužů","Ocean's _","Hlava _","Maroon _","_ věcí..."];
-let nI=0;
-
-function numberGame(){
-  nI=0;
-  showNum();
-}
-
-function showNum(){
-  document.getElementById("app").innerHTML = `
-    <h2>${nI+1}/10</h2>
-    <p>${numQ[nI]}</p>
-    <input id="a">
-    <button onclick="submitNum()">Další</button>
-  `;
-}
-
-function submitNum(){
-  send({station:6, question:nI+1, answer:document.getElementById("a").value});
-  nI++;
-  if(nI<10) showNum();
-  else confirmScreen();
-}
-
-/* GEO */
-const geo = [
-{img:'images/paraguay.png',opt:['Paraguay','Chile','Peru','Bolívie']},
-{img:'images/vietnam.png',opt:['Thajsko','Vietnam','Laos','Kambodža']},
-{img:'images/japonsko.png',opt:['Filipíny','Japonsko','Indonésie','Korea']},
-{img:'images/chile.png',opt:['Chile','Argentina','Peru','Brazílie']},
-{img:'images/severni-korea.png',opt:['Jižní Korea','Čína','Severní Korea','Japonsko']},
-{img:'images/nizozemsko.png',opt:['Belgie','Nizozemsko','Německo','Dánsko']},
-{img:'images/chorvatsko.png',opt:['Řecko','Chorvatsko','Itálie','Albánie']},
-{img:'images/novy-zeland.png',opt:['Austrálie','Nový Zéland','Fidži','Papua']},
-{img:'images/kuba.png',opt:['Kuba','Jamajka','Haiti','Bahamy']},
-{img:'images/gronsko.png',opt:['Island','Grónsko','Norsko','Kanada']}
-];
-
-let g=0;
-let lock=false;
-
-function geoQuiz(){
-  renderGeo();
-}
-
-function renderGeo(){
-  let q=geo[g];
-  document.getElementById("app").innerHTML = `
-    <h2>${g+1}/10</h2>
-    <img src="${q.imgswerGeo('${o}')">${o}</button>`).join("")}
-  `;
-}
-
-function answerGeo(a){
-  if(lock) return;
-  lock=true;
-
-  send({station:7, question:g+1, answer:a});
-
-  setTimeout(()=>{
-    lock=false;
-    g++;
-    if(g<10) renderGeo();
-    else confirmScreen();
-  },300);
-}
-
 </script>
 
 </body>
 </html>
-``
