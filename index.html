@@ -26,12 +26,10 @@ img { max-width:300px; margin:20px 0; }
 
 <script>
 const scriptURL = "https://script.google.com/macros/s/AKfycbzVIxT_PPm6GRhmVuHvVA6UlFQI93FdNa7PqMkcAUXQRoOxhiwV59Wzbta9D9VWSO1cFQ/exec";
-
 const params = new URLSearchParams(window.location.search);
 const station = params.get("station");
 let team = localStorage.getItem("team");
 
-// ===== init =====
 if(team){ startApp(); }
 
 function saveTeam(){
@@ -47,7 +45,10 @@ function startApp(){
   document.getElementById("app").style.display="block";
 
   if(!station){
-    showHome();
+    document.getElementById("app").innerHTML = `
+      <h2>Vítejte 🎉</h2>
+      <p>Naskenujte QR kód stanoviště.</p>
+    `;
     return;
   }
 
@@ -60,7 +61,7 @@ function startApp(){
   if(station==7) geoQuiz();
 }
 
-// ===== HELPERS =====
+// ===== SEND =====
 function send(data){
   fetch(scriptURL,{
     method:"POST",
@@ -69,27 +70,21 @@ function send(data){
   });
 }
 
+// ===== CONFIRM =====
 function confirmScreen(){
   document.getElementById("app").innerHTML = `
-    <h2>✅ Hotovo!</h2>
-    <p>Odpověď byla odeslána.</p>
+    <h2>✅ Hotovo, tohle jste zvládli!</h2>
     <p>Pokračujte na další stanoviště.</p>
   `;
 }
 
-// ===== HOME =====
-function showHome(){
-  document.getElementById("app").innerHTML = `
-    <h2>Vítejte 🎉</h2>
-    <p>Naskenujte QR kód stanoviště.</p>
-  `;
-}
-
-// ===== STATION 1 =====
+//////////////////////////
+// STATION 1 - SLEPEC
+//////////////////////////
 function slepec(){
   document.getElementById("app").innerHTML = `
     <h2>Slepec</h2>
-    <p>Jeden kreslí, ostatní radí. Máte 3 minuty.</p>
+    <p>Před sebou vidíš obálku, papír a fixy. Jeden člověk z vašeho týmu bude kreslit, ostatní budou radit. V obálce je obrázek, ten se ten co kreslí snaží co nejpřesněji překreslit podle instrukcí od zbytku týmu. Co kreslí nikdy nevidí obrázek. Máte časový limit 3 minuty, během nich musíte obrázek také vyfotit.</p>
     <button onclick="startSlepec()">Start</button>
   `;
 }
@@ -97,24 +92,26 @@ function slepec(){
 function startSlepec(){
   setTimeout(()=>alert("Konec času!"),180000);
   document.getElementById("app").innerHTML = `
-    <h2>Fotografujte výsledek</h2>
+    <h3>Vyfoťte výsledek</h3>
     <input type="file" accept="image/*" capture>
     <button onclick="finishPhoto(1)">Hotovo</button>
   `;
 }
 
-// ===== STATION 2 =====
+//////////////////////////
+// STATION 2 - TICHÁ POŠTA
+//////////////////////////
 function tichaPosta(){
   document.getElementById("app").innerHTML = `
     <h2>Tichá pošta</h2>
-    <p>Kreslení na zádech spoluhráče.</p>
+    <p>Vidíš před sebou obálku, papír a fixy. Stoupnete si všichni za sebe jako vláček, tak že vidíte na záda svého spoluhráče. Obálku otevírá a vidí pouze jeden z týmu, ten co je na konci. Každý má jeden list papíru a fixu. Poslední s obálkou kreslí na papír, který má položený na zádech spoluhráče před sebou. Pokračuje to dál až k prvnímu ve vláčku, který má výsledný obrázek. Ten je potřeba vyfotit.</p>
     <button onclick="startPhoto(2)">Start</button>
   `;
 }
 
 function startPhoto(s){
   document.getElementById("app").innerHTML = `
-    <h2>Vyfoťte výsledek</h2>
+    <h3>Vyfoťte výsledek</h3>
     <input type="file" accept="image/*" capture>
     <button onclick="finishPhoto(${s})">Hotovo</button>
   `;
@@ -125,11 +122,13 @@ function finishPhoto(s){
   confirmScreen();
 }
 
-// ===== STATION 3 =====
+//////////////////////////
+// STATION 3 - MEMORY
+//////////////////////////
 function memoryRun(){
   document.getElementById("app").innerHTML = `
     <h2>Memory run</h2>
-    <p>Zapamatování předmětů (4 min).</p>
+    <p>Dva hráči z vašeho týmu poběží ke krabici, kde jsou schované předměty, kdy se snažíte zapamatovat co nejvíc z nich. Dvojice běží zpět k týmu, který zapisuje předměty. Máte na to časový limit 4 minuty.</p>
     <button onclick="startMemory()">Start</button>
   `;
 }
@@ -147,12 +146,15 @@ function finishMemory(){
   confirmScreen();
 }
 
-// ===== STATION 4 =====
+//////////////////////////
+// STATION 4 - PUZZLE
+//////////////////////////
 let startTime;
+
 function puzzle(){
   document.getElementById("app").innerHTML = `
     <h2>Puzzle</h2>
-    <p>Složte puzzle co nejrychleji</p>
+    <p>Jeden z vašeho týmu má zavázané oči a podle návodů od zbytku týmu se snaží co nejrychleji složit puzzle.</p>
     <button onclick="startTime=Date.now()">Start</button>
     <button onclick="finishPuzzle()">Hotovo</button>
   `;
@@ -164,10 +166,13 @@ function finishPuzzle(){
   confirmScreen();
 }
 
-// ===== STATION 5 =====
+//////////////////////////
+// STATION 5 - PLAKÁT
+//////////////////////////
 function plakat(){
   document.getElementById("app").innerHTML = `
     <h2>Plakát</h2>
+    <p>Máte před sebou obálku, která obsahuje 10 plakátů očíslované 1 až 10. Do otevřeného pole pište jaký si myslíte, že se pod plakátem skrývá film. Pište je postupně hned za sebe, pokud nevíte a nechcete tipovat, napište nevíme.</p>
     <textarea id="p"></textarea>
     <button onclick="finishPlakat()">Odeslat</button>
   `;
@@ -178,7 +183,9 @@ function finishPlakat(){
   confirmScreen();
 }
 
-// ===== STATION 6 =====
+//////////////////////////
+// STATION 6 - NUMBER
+//////////////////////////
 const numQ = [
 "_ dalmatinů","Fallout _","Apollo _","_ stupňů Fahrenheita",
 "_ Pilots","_ rozhněvaných mužů","Ocean's _",
@@ -187,7 +194,18 @@ const numQ = [
 
 let nI=0;
 
-function numberGame(){ showNum(); }
+function numberGame(){
+  document.getElementById("app").innerHTML = `
+    <h2>Number</h2>
+    <p>Postupně se vám ukážou slova, ke kterým patří číslo, které musíte odhalit. Např. Bylo nás _ a vy doplníte 5.</p>
+    <button onclick="startNumber()">Start</button>
+  `;
+}
+
+function startNumber(){
+  nI=0;
+  showNum();
+}
 
 function showNum(){
   document.getElementById("app").innerHTML = `
@@ -205,7 +223,9 @@ function submitNum(){
   else confirmScreen();
 }
 
-// ===== STATION 7 GEO =====
+//////////////////////////
+// STATION 7 - GEO
+//////////////////////////
 const geo = [
 {img:'images/paraguay.png',opt:['Paraguay','Chile','Peru','Bolívie']},
 {img:'images/vietnam.png',opt:['Thajsko','Vietnam','Laos','Kambodža']},
@@ -222,10 +242,12 @@ const geo = [
 let g=0;
 let lock=false;
 
-function geoQuiz(){ renderGeo(); }
+function geoQuiz(){
+  renderGeo();
+}
 
 function renderGeo(){
-  let q = geo[g];
+  let q=geo[g];
   document.getElementById("app").innerHTML = `
     <h2>${g+1}/10</h2>
     <img src="${q.imgopt.map(o=>`<button onclick="answerGeo('${o}')">${o}</button>`).join("")}
