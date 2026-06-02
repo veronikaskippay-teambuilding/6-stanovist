@@ -71,7 +71,8 @@ function startApp(){
   if(station==10) videohry();
   if(station==11) vlastovka();
   if(station==12) matematikaIntro();
-
+  if(station==13) zakladDneIntro();
+  
 }
 
 function send(data){
@@ -563,6 +564,83 @@ function nextMath(){
 function finishMath(){
   document.getElementById("app").innerHTML = `
   <h2>Mega smekám!</h2>
+    <button onclick="confirmScreen()">Hotovo</button>
+  `;
+}  
+
+////////////////////////
+// 13 ZÁKLAD DNE ✅
+////////////////////////
+
+const zakladQ = [
+"těstoviny, vejce, pancetta, parmezán, černý pepř",
+"cizrna, tahini, citron, česnek, olivový olej",
+"hovězí maso, rajčata, fazole, chilli, kmín, (Kevin)",
+"avokádo, citron, česnek, koriandr, jalapeño",
+"rajčata, mozzarella, bazalka, olivový olej, balzamikový ocet",
+"kukuřičná tortilla, vepřové maso, ananas, koriandr, salsa",
+"mango, lepkavá rýže, kokosové mléko, sezam, cukr",
+"hovězí maso, kořenová zelenina, smetana, citron",
+"vepřové maso, zelí, knedlíky, kmín, cibule",
+"jehněčí maso, mrkev, cizrna, skořice, rozinky"
+];
+
+let zI = 0;
+
+// ✅ INSTRUKCE
+function zakladDneIntro(){
+  document.getElementById("app").innerHTML = `
+    <h3 class="team">Tým: ${team}</h3>
+    <h2>Základ dne</h2>
+    <p>
+    Podle seznamu ingrediencí určete, o jaké jídlo se jedná. Není žádný časový limit.
+    </p>
+    <button onclick="startZaklad()">Start</button>
+  `;
+}
+
+// ✅ START
+function startZaklad(){
+  zI = 0;
+  showZaklad();
+}
+
+// ✅ ZOBRAZENÍ OTÁZKY
+function showZaklad(){
+  document.getElementById("app").innerHTML = `
+    <h3 class="team">Tým: ${team}</h3>
+    <h2>${zI+1}/10</h2>
+    <p>${zakladQ[zI]}</p>
+    <textarea id="zakladInput" placeholder="Napište název jídla"></textarea>
+    <button onclick="nextZaklad()">Další</button>
+  `;
+}
+
+// ✅ DALŠÍ / KONEC
+function nextZaklad(){
+
+  const val = document.getElementById("zakladInput").value;
+
+  send({
+    station: 13,
+    question: zI + 1,
+    answer: val
+  });
+
+  zI++;
+
+  if(zI < zakladQ.length){
+    showZaklad();
+  } else {
+    finishZaklad();
+  }
+}
+
+// ✅ HOTOVO
+function finishZaklad(){
+  document.getElementById("app").innerHTML = `
+    <h2>Hotovo!</h2>
+    <p>Dokončili jste všechny otázky.</p>
     <button onclick="confirmScreen()">Hotovo</button>
   `;
 }  
