@@ -70,6 +70,7 @@ function startApp(){
   if(station==9) bezDotyku();
   if(station==10) videohry();
   if(station==11) vlastovka();
+  if(station==12) matematikaIntro();
 
 }
 
@@ -488,6 +489,83 @@ function vlastovka(){
 function finishVlastovka(){
   send({station:11,answer:"DONE"});
   confirmScreen();
+}  
+
+////////////////////////
+// 12 MATEMATIKA ✅
+////////////////////////
+
+const mathQ = [
+"V místnosti je 20 lidí a každý s každým si potřese rukou. Ke kolika potřesením rukou dojde?",
+"Jak změříte přesně 4 litry vody, máte-li k dispozici pouze dvě odměrné nádoby o objemu 5 a 3 litry?",
+"Která tři kladná čísla mají stejný součet i součin?",
+"Dvě kachny stojí před dvěma jinými kachnami, dvě stojí za dvěma jinými a dvě vedle dvou jiných. Kolik je kachen dohromady?",
+"Můj otec měl 31 let, když jsem měl já 8. Teď dvakrát tak starý jako já. Kolik je mi let?",
+"Kolik je 1/2 z 2/3 z 3/4 z 4/5 z 5/6 z 6/7 z 7/8 z 8/9 z 9/10 z 1000?",
+"Je-li tatáž kniha na poličce čtvrtou zleva a šestou zprava, kolik knih je na poličce?",
+"Pokud stojíte 10 metrů od dveří a s každým pohybem směrem k nim snížíte vzdálenost o polovinu, po kolika pohybech se dostanete ke dveřím?",
+"První vlak jede z bodu A do bodu B konstantní rychlostí 60 km/hod, druhý z bodu B do bodu A konstantní rychlostí 40 km/hod. Jak daleko budou vlaky od sebe vzdáleny hodinu před tím, než se setkají, za předpokladu, že ani jeden z nich nezastaví?",
+"Číslo X zdvojnásobíme, poté výsledek vynásobíme číslem 4, následně vydělíme číslem 8 a dostaneme opět číslo X. Jaké je X číslo?"
+];
+
+let mI = 0;
+
+// ✅ INSTRUKCE
+function matematikaIntro(){
+  document.getElementById("app").innerHTML = `
+    <h3 class="team">Tým: ${team}</h3>
+    <h2>Matematika</h2>
+    <p>
+    Čeká na tebe 10 matematických hádanek. Vedle máš papíry, kam si můžeš psát a není zde časový limit. Hodně štěstí!
+    </p>
+    <button onclick="startMatematika()">Start</button>
+  `;
+}
+
+// ✅ START
+function startMatematika(){
+  mI = 0;
+  showMath();
+}
+
+// ✅ ZOBRAZENÍ OTÁZKY
+function showMath(){
+  document.getElementById("app").innerHTML = `
+    <h3 class="team">Tým: ${team}</h3>
+    <h2>${mI+1}/10</h2>
+    <p>${mathQ[mI]}</p>
+    <textarea id="mathInput" placeholder="Zapiš odpověď"></textarea>
+    <button onclick="nextMath()">Další</button>
+  `;
+}
+
+// ✅ DALŠÍ OTÁZKA / KONEC
+function nextMath(){
+
+  const val = document.getElementById("mathInput").value;
+
+  send({
+    station: 12,
+    question: mI + 1,
+    answer: val
+  });
+
+  mI++;
+
+  if(mI < mathQ.length){
+    showMath();
+  } else {
+    finishMath();
+  }
+}
+
+// ✅ KONEC → HOTOVO
+function finishMath(){
+  document.getElementById("app").innerHTML = `
+    <h2>Hotovo!</h2>
+    <p>Dokončili jste všechny hádanky.</p>
+    <button onclick="confirmScreen()">Hotovo</button>
+  `;
 }  
   
 </script>
