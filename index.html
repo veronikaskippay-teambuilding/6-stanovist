@@ -66,6 +66,11 @@ function startApp(){
   if(station==5)plakat();
   if(station==6)numberIntro();
   if(station==7)geoIntro();
+  if(station==8) prisloviIntro();
+  if(station==9) bezDotyku();
+  if(station==10) videohry();
+  if(station==11) vlastovka();
+
 }
 
 function send(data){
@@ -300,6 +305,185 @@ function submitGeo(){
   confirmScreen();
 }
 
+////////////////////////
+// 8 PŘÍSLOVÍ ✅
+////////////////////////
+
+const prislovi = [
+"images/nekdo-rad-holky-jinej-zas-vdolky.png",
+"images/my-o-vlku-a-vlk-za-dvermi.png",
+"images/muj-dum-muj-hrad.png",
+"images/kovarovic-kobyla-chodi-bosa.png",
+"images/kdyz-ne-po-dobru-tak-po-zlu.png",
+"images/kam-cert-nemuze-nastrci-zenskou.png",
+"images/jedna-vlastovka-jaro-nedela.png",
+"images/co-na-srdci-to-na-jazyku.png",
+"images/co-se-v-mladi-naucis-ve-stari-jako-kdyz-najdes.png",
+"images/bez-prace-nejsou-kolace.png"
+];
+
+let pi = 0;
+let prisloviAnswers = [];
+
+// ÚVOD
+function prisloviIntro(){
+  app.innerHTML = `
+    <h3 class="team">Tým: ${team}</h3>
+    <h2>Přísloví</h2>
+    <p>Poznej podle emoji o jaké české přísloví se jedná.</p>
+    <button onclick="startPrislovi()">Start</button>
+  `;
+}
+
+// START
+function startPrislovi(){
+  pi = 0;
+  prisloviAnswers = [];
+  showPrislovi();
+}
+
+// OTÁZKA
+function showPrislovi(){
+  app.innerHTML = `
+    <h3 class="team">Tým: ${team}</h3>
+    <h2>${pi+1}/10</h2>
+
+    <img src="${prislovi[pi]}">
+
+    <input id="prInput" placeholder="Zadej přísloví">
+
+    <button onclick="nextPrislovi()">Další</button>
+  `;
+}
+
+// DALŠÍ
+function nextPrislovi(){
+  prisloviAnswers.push(document.getElementById("prInput").value);
+  pi++;
+
+  if(pi < prislovi.length){
+    showPrislovi();
+  } else {
+    finishPrislovi();
+  }
+}
+
+// KONEC
+function finishPrislovi(){
+  app.innerHTML = `
+    <h3 class="team">Tým: ${team}</h3>
+    <button onclick="submitPrislovi()">Hotovo</button>
+  `;
+}
+
+// ODESLÁNÍ
+function submitPrislovi(){
+  prisloviAnswers.forEach((a,i)=>
+    send({station:8,question:i+1,answer:a})
+  );
+  confirmScreen();
+}
+
+////////////////////////
+// 9 BEZ DOTYKU ✅
+////////////////////////
+
+let bdTime = 0;
+let bdTimer;
+
+// ÚVOD
+function bezDotyku(){
+  app.innerHTML = `
+    <h3 class="team">Tým: ${team}</h3>
+    <h2>Bez dotyku</h2>
+    <p>Pomocí předmětů před sebou musíte napsat slovo OLIVA bez dotyku fixy.</p>
+    <button onclick="startBD()">Start</button>
+  `;
+}
+
+// START
+function startBD(){
+  bdTime = 0;
+
+  app.innerHTML = `
+    <h3 class="team">Tým: ${team}</h3>
+    <h2><span id="bdTimer">0:00</span></h2>
+    <button onclick="stopBD()">Stop</button>
+  `;
+
+  bdTimer = setInterval(()=>{
+    bdTime++;
+    bdTimerDisplay.innerText = formatTime(bdTime);
+  },1000);
+}
+
+// STOP
+function stopBD(){
+  clearInterval(bdTimer);
+
+  app.innerHTML = `
+    <h3 class="team">Tým: ${team}</h3>
+    <h2>${formatTime(bdTime)}</h2>
+    <button onclick="finishBD()">Hotovo</button>
+  `;
+}
+
+// ODESLÁNÍ
+function finishBD(){
+  send({station:9,answer:bdTime});
+  confirmScreen();
+}
+
+////////////////////////
+// 10 VIDEOHRY ✅
+////////////////////////
+
+// ÚVOD
+function videohry(){
+  app.innerHTML = `
+    <h3 class="team">Tým: ${team}</h3>
+    <h2>Videohry</h2>
+    <p>Rozpoznat screenshoty a zadat odpovědi ve správném pořadí.</p>
+    <button onclick="startVideohry()">Start</button>
+  `;
+}
+
+// START
+function startVideohry(){
+  app.innerHTML = `
+    <h3 class="team">Tým: ${team}</h3>
+    <textarea id="vgInput" placeholder="hra1, hra2..."></textarea>
+    <button onclick="finishVideohry()">Hotovo</button>
+  `;
+}
+
+// ODESLÁNÍ
+function finishVideohry(){
+  send({
+    station:10,
+    answer: document.getElementById("vgInput").value
+  });
+  confirmScreen();
+} 
+
+////////////////////////
+// 11 VLAŠTOVKA ✅
+////////////////////////
+
+function vlastovka(){
+  app.innerHTML = `
+    <h3 class="team">Tým: ${team}</h3>
+    <h2>Vlaštovka</h2>
+    <p>Složit vlaštovku, která dolétne nejdál. Můžete využít internet.</p>
+    <button onclick="finishVlastovka()">Hotovo</button>
+  `;
+}
+
+function finishVlastovka(){
+  send({station:11,answer:"DONE"});
+  confirmScreen();
+}  
+  
 </script>
 </body>
 </html>
