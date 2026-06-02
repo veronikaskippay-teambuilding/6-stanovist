@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teambuilding Game</title>
+<style>
+body { font-family: Arial; text-align:center; padding:20px; }
+button { padding:12px; margin:8px; width:240px; }
+img { max-width:300px; margin:20px 0; }
+</style>
+</head>
+<body>
+
+<div id="start">
+<h2>Zadej název týmu</h2>
+<input id="teamInput" placeholder="Název týmu">
+<button onclick="saveTeam()">Start</button>
+</div>
+
+<div id="app" style="display:none"></div>
+
+<script>
+const scriptURL = "https://script.google.com/macros/s/AKfycbzVIxT_PPm6GRhmVuHvVA6UlFQI93FdNa7PqMkcAUXQRoOxhiwV59Wzbta9D9VWSO1cFQ/exec";
+const params = new URLSearchParams(window.location.search);
+const station = params.get("station");
+let team = localStorage.getItem("team");
+
+if(team){ startApp(); }
+
+function saveTeam(){
+  const t = document.getElementById("teamInput").value;
+  if(!t) return;
+  localStorage.setItem("team", t);
+  team = t;
+  startApp();
+}
+
+function startApp(){
+  document.getElementById("start").style.display="none";
+  document.getElementById("app").style.display="block";
+
+  if(station=="3") memoryRun();
+  if(station=="4") puzzle();
+  if(station=="5") plakat();
+  if(station=="6") numberGame();
+  if(station=="1" || station=="2") photoStation();
+  if(station=="7") geoQuiz();
+}
+
+function send(data){
+  fetch(scriptURL,{
+    method:"POST",
+    mode:"no-cors",
+    body: JSON.stringify({team:team,...data})
+  })
+}
+
+// === GEO QUIZ (station 7) ===
+const geo = [
+{ img:'images/paraguay.png', opt:['Paraguay','Chile','Peru','Bolívie']},
+{ img:'images/vietnam.png', opt:['Thajsko','Vietnam','Laos','Kambodža']},
+{ img:'images/japonsko.png', opt:['Filipíny','Japonsko','Indonésie','Korea']},
+{ img:'images/chile.png', opt:['Chile','Argentina','Peru','Brazílie']},
+{ img:'images/severni-korea.png', opt:['Jižní Korea','Čína','Severní Korea','Japonsko']},
+{ img:'images/nizozemsko.png', opt:['Belgie','Nizozemsko','Německo','Dánsko']},
+{ img:'images/chorvatsko.png', opt:['Řecko','Chorvatsko','Itálie','Albánie']},
+{ img:'images/novy-zeland.png', opt:['Austrálie','Nový Zéland','Fidži','Papua']},
+{ img:'images/kuba.png', opt:['Kuba','Jamajka','Haiti','Bahamy']},
+{ img:'images/gronsko.png', opt:['Island','Grónsko','Norsko','Kanada']}
+];
+let gIndex = 0;
+let locking=false;
+
+function geoQuiz(){ renderGeo(); }
+
+function renderGeo(){
+  const q = geo[gIndex];
+  document.getElementById("app").innerHTML = `
+    <h2>${gIndex+1}/10</h2>
+    <img src="${q.img}">
+    ${q.opt.map(o=>`<button onclick="answerGeo('${o}')">${o}</button>`).join('')}
+  `;
+}
+
+function answerGeo(ans){
+  if(locking) return;
+  locking=true;
+
+  send({station:7, question:gIndex+1, answer:ans});
+  
+  setTimeout(()=>{
+    locking=false;
+    gIndex++;
+    if(gIndex<10) renderGeo(); else alert('Hotovo!');
+  },300);
+}
+
+// === OTHER STATIONS (unchanged simplified) ===
+function memoryRun(){ document.getElementById("app").innerHTML='<h2>Memory run</h2><textarea id="input"></textarea><button onclick="finishMemory()">Hotovo</button>'; }
+function finishMemory(){ send({station:3, answer:document.getElementById("input").value}); }
+
+let startTime;
+function puzzle(){ document.getElementById("app").innerHTML='<h2>Puzzle</h2><button onclick="startTime=Date.now()">Start</button><button onclick="send({station:4, answer:Math.floor((Date.now()-startTime)/1000)})">Hotovo</button>'; }
+
+function plakat(){ document.getElementById("app").innerHTML='<h2>Plakát</h2><textarea id="p"></textarea><button onclick="send({station:5, answer:document.getElementById("p").value})">Odeslat</button>'; }
+
+const numQ=["_ dalmatinů","Fallout _","Apollo _","_ stupňů Fahrenheita","_ Pilots","_ rozhněvaných mužů","Ocean's _","Hlava _","Maroon _","_ věcí, které na tobě nesnáším"];
+let nI=0;
+function numberGame(){ showNum(); }
+function showNum(){ document.getElementById("app").innerHTML=`<h2>${nI+1}/10</h2><p>${numQ[nI]}</p><input id="a"><button onclick="submitNum()">Další</button>`; }
+function submitNum(){ send({station:6, question:nI+1, answer:document.getElementById("a").value}); nI++; if(nI<10)showNum(); else alert('Hotovo'); }
+
+function photoStation(){ document.getElementById("app").innerHTML='<h2>Foto</h2><input type="file" accept="image/*" capture><button onclick="send({station:station, answer:"PHOTO DONE"})">Hotovo</button>'; }
+
+</script>
+</body>
+</html>
