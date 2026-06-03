@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Mozková olympiada</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  -webkit-text-size-adjust: none;
+  overflow-x: clip;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  background: #f0f4ff;
+  color: #1f4bc1;
+  min-height: 100svh;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px 48px;
+}
+
+#start, #app {
+  width: 100%;
+  max-width: min(460px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+h1 {
+  font-family: 'Luckiest Guy', cursive;
+  font-size: clamp(30px, 8vw, 42px);
+  line-height: 1.1;
+  text-align: center;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+}
+h2 {
+  font-family: 'Luckiest Guy', cursive;
+  font-size: clamp(22px, 6vw, 32px);
+  line-height: 1.2;
+  text-align: center;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+}
+h3 { font-size: 13px; color: #999; font-weight: 400; text-align: center; }
+p  { font-size: 16px; line-height: 1.6; text-align: center; color: #3a5acf; overflow-wrap: break-word; word-break: break-word; }
+
+button {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-height: 52px;
+  padding: 14px 20px;
+  background: #1f4bc1;
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+button.secondary {
+  background: transparent;
+  color: #1f4bc1;
+  border: 2px solid #1f4bc1;
+}
+
+input, textarea, select {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  padding: 14px;
+  background: #fff;
+  border: 2px solid #c5d0f0;
+  border-radius: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.4;
+  color: #222;
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+  touch-action: manipulation;
+}
+input:focus, textarea:focus { border-color: #1f4bc1; }
+textarea { min-height: 110px; resize: none; }
+
+.progress {
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #888;
+  text-align: center;
+}
+
+.timer {
+  font-family: 'Luckiest Guy', cursive;
+  font-size: clamp(48px, 14vw, 72px);
+  text-align: center;
+  line-height: 1;
+}
+
+.card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 18px 16px;
+  box-shadow: 0 2px 12px rgba(31,75,193,.08);
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  width: 200px;
+  margin: 0 auto;
+  border-radius: 12px;
+  height: auto;
+}
+</style>
+</head>
+<body>
+
+<div id="start" style="display:none">
+  <h1>Mozkova<br>olympiada</h1>
+  <input type="text" id="teamInput" placeholder="Nazev tymu"
+    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  <button onclick="saveTeam()">Start</button>
+</div>
+
+<div id="app"></div>
+
+<script>
+var scriptURL = "https://script.google.com/macros/s/AKfycbzVIxT_PPm6GRhmVuHvVA6UlFQI93FdNa7PqMkcAUXQRoOxhiwV59Wzbta9D9VWSO1cFQ/exec";
+
+document.addEventListener("DOMContentLoaded", function() {
+
+  // Blokování pinch-zoom - Safari od iOS 10 ignoruje user-scalable=no
+  document.addEventListener("touchmove", function(e) {
+    if (e.touches && e.touches.length > 1) e.preventDefault();
+  }, { passive: false });
+  document.addEventListener("gesturestart",  function(e) { e.preventDefault(); }, { passive: false });
+  document.addEventListener("gesturechange", function(e) { e.preventDefault(); }, { passive: false });
+  document.addEventListener("gestureend",    function(e) { e.preventDefault(); }, { passive: false });
+
+  var app   = document.getElementById("app");
+  var start = document.getElementById("start");
+
+  // REFRESH FIX: station se uloži do localStorage pri prvnim nacteni
+  // Pri refreshi se URL parametr ztrati - nacitame ho z localStorage
+  var station = null;
+  var urlStation = new URLSearchParams(window.location.search).get("station");
+  if (urlStation) {
+    station = urlStation;
+    try { localStorage.setItem("mo_station", station); } catch(e) {}
+  } else {
+    try { station = localStorage.getItem("mo_station"); } catch(e) {}
+  }
+
+  var team = null;
+  try { team = localStorage.getItem("mo_team"); } catch(e) {}
+
+  var STATE_KEY = "mo_state_" + station;
+
+  function saveState(step, data) {
+    try { localStorage.setItem(STATE_KEY, JSON.stringify({ step: step, data: data || {} })); } catch(e) {}
+  }
+  function loadState() {
+    try { var r = localStorage.getItem(STATE_KEY); return r ? JSON.parse(r) : null; } catch(e) { return null; }
+  }
+  function clearState() {
+    try { localStorage.removeItem(STATE_KEY); } catch(e) {}
+  }
+  function teamTag() { return team ? "<h3>Tym: " + team + "</h3>" : ""; }
+  function fmt(s) { var m = Math.floor(s/60); var sec = s%60; return m + ":" + (sec<10?"0":"") + sec; }
+  function send(data) {
+    fetch(scriptURL, { method:"POST", mode:"no-cors", body:JSON.stringify(Object.assign({team:team}, data)) }).catch(function(){});
+  }
+  function confirmScreen() { clearState(); app.innerHTML = "<h2>Hotovo!</h2><p>Tuhle stanovi jste zvladli!</p>"; }
+  window.confirmScreen = confirmScreen;
+
+  if (!station) { app.innerHTML = "<p>Chybi cislo stanice v URL (?station=1)</p>"; return; }
+  if (team) { startApp(); } else { start.style.display = "flex"; }
+
+  window.saveTeam = function() {
+    var val = document.getElementById("teamInput").value.trim();
+    if (!val) return;
+    team = val;
+    try { localStorage.setItem("mo_team", team); } catch(e) {}
+    start.style.display = "none";
+    startApp();
+  };
+
+  function startApp() {
+    start.style.display = "none";
+    var n = parseInt(station, 10);
+    var map = {1:slepec,2:tichaPosta,3:memoryRun,4:puzzle,5:plakat,6:numberIntro,7:geoIntro,8:prisloviIntro,9:bezDotyku,10:videohry,11:vlastovka,12:matematikaIntro,13:zakladDneIntro};
+    if (map[n]) map[n](); else app.innerHTML = "<h2>Neznama stanice " + n + "</h2>";
+  }
+
+  // --- 1 SLEPEC ---
+  var slepecTimer;
+  function slepec() {
+    var st = loadState();
+    if (st && st.step==="running") { resumeSlepec(st.data.elapsed||0); return; }
+    app.innerHTML = teamTag()+"<h2>Slepec</h2><p>Jeden clen si zavaze oci, ostatni septaji instrukce. Mate 4 minuty.</p><button onclick='startSlepec()'>Start</button>";
+  }
+  window.startSlepec = function() { saveState("running",{elapsed:0}); resumeSlepec(0); };
+  function resumeSlepec(from) {
+    var t = 240-from;
+    app.innerHTML = teamTag()+"<div class='timer'><span id='t'>"+fmt(t)+"</span></div><input id='f' type='file' accept='image/*' capture='environment' style='display:none'><button onclick=\"document.getElementById('f').click()\">Vyfotit</button><button class='secondary' onclick='finishSlepec()'>Hotovo</button>";
+    clearInterval(slepecTimer);
+    slepecTimer = setInterval(function() { t--; saveState("running",{elapsed:240-t}); var el=document.getElementById("t"); if(el)el.textContent=fmt(t); if(t<=0){clearInterval(slepecTimer);alert("Cas vypršel!");} }, 1000);
+  }
+  window.finishSlepec = function() { clearInterval(slepecTimer); send({station:1,answer:"PHOTO"}); confirmScreen(); };
+
+  // --- 2 TICHA POSTA ---
+  function tichaPosta() {
+    var st = loadState();
+    if (st && st.step==="running") { showTP(); return; }
+    app.innerHTML = teamTag()+"<h2>Ticha posta</h2><p>Kresleni vzoru na zada spoluhrace.</p><button onclick='startTP()'>Start</button>";
+  }
+  window.startTP = function() { saveState("running"); showTP(); };
+  function showTP() { app.innerHTML = teamTag()+"<h2>Ticha posta</h2><input type='file' accept='image/*' capture='environment'><button onclick='finishTP()'>Hotovo</button>"; }
+  window.finishTP = function() { send({station:2,answer:"PHOTO"}); confirmScreen(); };
+
+  // --- 3 MEMORY RUN ---
+  var memTimer;
+  function memoryRun() {
+    var st = loadState();
+    if (st && st.step==="running") { resumeMemory(st.data.elapsed||0, st.data.txt||""); return; }
+    app.innerHTML = teamTag()+"<h2>Memory run</h2><p>Za 4 minuty si zapamatujte co nejvice predmetu, pak je napiste.</p><button onclick='startMemory()'>Start</button>";
+  }
+  window.startMemory = function() { saveState("running",{elapsed:0,txt:""}); resumeMemory(0,""); };
+  function resumeMemory(from, savedTxt) {
+    var t = 240-from;
+    app.innerHTML = teamTag()+"<div class='timer'><span id='mt'>"+fmt(t)+"</span></div><textarea id='txt' placeholder='Predmety...'>"+savedTxt+"</textarea><button onclick='finishMemory()'>Hotovo</button>";
+    clearInterval(memTimer);
+    memTimer = setInterval(function() { t--; var txt=document.getElementById("txt"); saveState("running",{elapsed:240-t,txt:txt?txt.value:""}); var el=document.getElementById("mt"); if(el)el.textContent=fmt(t); if(t<=0)clearInterval(memTimer); }, 1000);
+  }
+  window.finishMemory = function() { clearInterval(memTimer); send({station:3,answer:document.getElementById("txt").value}); confirmScreen(); };
+
+  // --- 4 PUZZLE ---
+  var pTime=0, pTimer;
+  function puzzle() {
+    var st = loadState();
+    if (st && st.step==="running") { resumePuzzle(st.data.elapsed||0); return; }
+    if (st && st.step==="stopped") { showPuzzleResult(st.data.elapsed||0); return; }
+    app.innerHTML = teamTag()+"<h2>Puzzle</h2><p>Složte puzzle co nejrychleji.</p><button onclick='startPuzzle()'>Start</button>";
+  }
+  window.startPuzzle = function() { saveState("running",{elapsed:0}); resumePuzzle(0); };
+  function resumePuzzle(from) {
+    pTime = from;
+    app.innerHTML = teamTag()+"<div class='timer'><span id='pt'>"+fmt(pTime)+"</span></div><button onclick='stopPuzzle()'>Stop</button>";
+    clearInterval(pTimer);
+    pTimer = setInterval(function() { pTime++; saveState("running",{elapsed:pTime}); var el=document.getElementById("pt"); if(el)el.textContent=fmt(pTime); }, 1000);
+  }
+  window.stopPuzzle  = function() { clearInterval(pTimer); saveState("stopped",{elapsed:pTime}); showPuzzleResult(pTime); };
+  function showPuzzleResult(t) { app.innerHTML = teamTag()+"<h2>"+fmt(t)+"</h2><button onclick='finishPuzzle()'>Hotovo</button>"; }
+  window.finishPuzzle = function() { send({station:4,answer:pTime}); confirmScreen(); };
+
+  // --- 5 PLAKAT ---
+  function plakat() {
+    var st = loadState();
+    if (st && st.step==="running") { showPlakat(st.data.txt||""); return; }
+    app.innerHTML = teamTag()+"<h2>Plakat</h2><p>Zapiste nazvy filmu z plakatu.</p><button onclick='startPlakat()'>Start</button>";
+  }
+  window.startPlakat = function() { saveState("running",{txt:""}); showPlakat(""); };
+  function showPlakat(saved) {
+    app.innerHTML = teamTag()+"<textarea id='p' placeholder='Filmy...'>"+saved+"</textarea><button onclick='finishPlakat()'>Hotovo</button>";
+    document.getElementById("p").addEventListener("input", function(e){ saveState("running",{txt:e.target.value}); });
+  }
+  window.finishPlakat = function() { send({station:5,answer:document.getElementById("p").value}); confirmScreen(); };
+
+  // --- 6 NUMBER ---
+  var num = ["_ dalmatinu","Fallout _","Apollo _","_ stupnu Fahrenheita","_ Pilots","_ rozhnévanych muzu","Ocean's _","Hlava _","Maroon _","_ veci..."];
+  var ni = 0;
+  function numberIntro() {
+    var st = loadState();
+    if (st && st.step==="running") { ni=st.data.ni||0; showNum(); return; }
+    app.innerHTML = teamTag()+"<h2>Number</h2><p>Dopln cislo do nazvu.</p><button onclick='startNumber()'>Start</button>";
+  }
+  window.startNumber = function() { ni=0; saveState("running",{ni:0}); showNum(); };
+  function showNum() {
+    app.innerHTML = teamTag()
+      +"<div class='progress'>"+(ni+1)+" / "+num.length+"</div>"
+      +"<div class='card'><p style='font-weight:700'>"+num[ni]+"</p></div>"
+      +"<input type='text' inputmode='numeric' pattern='[0-9]*' id='n' placeholder='Cislo...' autocomplete='off' autocorrect='off' autocapitalize='off'>"
+      +"<button onclick='submitNum()'>Dalsi</button>";
+  }
+  window.submitNum = function() { send({station:6,question:ni+1,answer:document.getElementById("n").value}); ni++; saveState("running",{ni:ni}); if(ni<num.length)showNum(); else confirmScreen(); };
+
+  // --- 7 STATY ---
+  var geo = [
+    {img:"images/paraguay.png",    opt:["Paraguay","Chile","Peru","Bolivie"]},
+    {img:"images/vietnam.png",     opt:["Thajsko","Vietnam","Laos","Kambodza"]},
+    {img:"images/japonsko.png",    opt:["Filipiny","Japonsko","Indonesie","Korea"]},
+    {img:"images/chile.png",       opt:["Chile","Argentina","Peru","Brazilie"]},
+    {img:"images/severni-korea.png",opt:["Jizni Korea","Cina","Severni Korea","Japonsko"]},
+    {img:"images/nizozemsko.png",  opt:["Belgie","Nizozemsko","Nemecko","Dansko"]},
+    {img:"images/chorvatsko.png",  opt:["Recko","Chorvatsko","Italie","Albanie"]},
+    {img:"images/novy-zeland.png", opt:["Australie","Novy Zeland","Fidzi","Papua"]},
+    {img:"images/kuba.png",        opt:["Kuba","Jamajka","Haiti","Bahamy"]},
+    {img:"images/gronsko.png",     opt:["Island","Gronsko","Norsko","Kanada"]}
+  ];
+  var gi=0, geoAnswers=[];
+  function geoIntro() {
+    var st = loadState();
+    if (st && st.step==="running") { gi=st.data.gi||0; geoAnswers=st.data.ans||[]; showGeo(); return; }
+    app.innerHTML = teamTag()+"<h2>Staty</h2><p>Poznej stat podle tvaru na mape.</p><button onclick='startGeo()'>Start</button>";
+  }
+  window.startGeo = function() { gi=0; geoAnswers=[]; saveState("running",{gi:0,ans:[]}); showGeo(); };
+  function showGeo() {
+    var q = geo[gi];
+    var btns = q.opt.map(function(o){ return "<button onclick=\"ansGeo('"+o+"')\">"+o+"</button>"; }).join("");
+    app.innerHTML = teamTag()+"<div class='progress'>"+(gi+1)+" / "+geo.length+"</div><img src='"+q.img+"' alt='mapa'>"+btns;
+  }
+  window.ansGeo = function(a) { geoAnswers.push(a); gi++; saveState("running",{gi:gi,ans:geoAnswers}); if(gi<geo.length)showGeo(); else finishGeo(); };
+  function finishGeo() { app.innerHTML = teamTag()+"<h2>Hotovo!</h2><button onclick='submitGeo()'>Odeslat</button>"; }
+  window.submitGeo = function() { geoAnswers.forEach(function(a,i){ send({station:7,question:i+1,answer:a}); }); confirmScreen(); };
+
+  // --- 8 PRISLOVI ---
+  var prislovi = [
+    "images/nekdo-rad-holky-jinej-zas-vdolky.png","images/my-o-vlku-a-vlk-za-dvermi.png",
+    "images/muj-dum-muj-hrad.png","images/kovarovic-kobyla-chodi-bosa.png",
+    "images/kdyz-ne-po-dobru-tak-po-zlu.png","images/kam-cert-nemuze-nastrci-zenskou.png",
+    "images/jedna-vlastovka-jaro-nedela.png","images/co-na-srdci-to-na-jazyku.png",
+    "images/co-se-v-mladi-naucis-ve-stari-jako-kdyz-najdes.png","images/bez-prace-nejsou-kolace.png"
+  ];
+  var pi=0, prisloviAnswers=[];
+  function prisloviIntro() {
+    var st = loadState();
+    if (st && st.step==="running") { pi=st.data.pi||0; prisloviAnswers=st.data.ans||[]; showPrislovi(); return; }
+    app.innerHTML = teamTag()+"<h2>Prislovi</h2><p>Poznej podle emoji o jake ceske prislovi se jedna.</p><button onclick='startPrislovi()'>Start</button>";
+  }
+  window.startPrislovi = function() { pi=0; prisloviAnswers=[]; saveState("running",{pi:0,ans:[]}); showPrislovi(); };
+  function showPrislovi() {
+    app.innerHTML = teamTag()+"<div class='progress'>"+(pi+1)+" / "+prislovi.length+"</div><img src='"+prislovi[pi]+"' alt='prislovi'><input type='text' id='prInput' placeholder='Zadej prislovi...' autocomplete='off' autocorrect='off' spellcheck='false'><button onclick='nextPrislovi()'>Dalsi</button>";
+  }
+  window.nextPrislovi = function() { prisloviAnswers.push(document.getElementById("prInput").value); pi++; saveState("running",{pi:pi,ans:prisloviAnswers}); if(pi<prislovi.length)showPrislovi(); else finishPrislovi(); };
+  function finishPrislovi() { app.innerHTML = teamTag()+"<h2>Hotovo!</h2><button onclick='submitPrislovi()'>Odeslat</button>"; }
+  window.submitPrislovi = function() { prisloviAnswers.forEach(function(a,i){ send({station:8,question:i+1,answer:a}); }); confirmScreen(); };
+
+  // --- 9 BEZ DOTYKU ---
+  var bdTime=0, bdTimer;
+  function bezDotyku() {
+    var st = loadState();
+    if (st && st.step==="running") { resumeBD(st.data.elapsed||0); return; }
+    if (st && st.step==="stopped") { showBDResult(st.data.elapsed||0); return; }
+    app.innerHTML = teamTag()+"<h2>Bez dotyku</h2><p>Pomocí predmetu napiste slovo OLIVA bez dotyku fixy.</p><button onclick='startBD()'>Start</button>";
+  }
+  window.startBD = function() { saveState("running",{elapsed:0}); resumeBD(0); };
+  function resumeBD(from) {
+    bdTime = from;
+    app.innerHTML = teamTag()+"<div class='timer'><span id='bdTimer'>"+fmt(bdTime)+"</span></div><button onclick='stopBD()'>Stop</button>";
+    clearInterval(bdTimer);
+    bdTimer = setInterval(function() { bdTime++; saveState("running",{elapsed:bdTime}); var el=document.getElementById("bdTimer"); if(el)el.textContent=fmt(bdTime); }, 1000);
+  }
+  window.stopBD = function() { clearInterval(bdTimer); saveState("stopped",{elapsed:bdTime}); showBDResult(bdTime); };
+  function showBDResult(t) { app.innerHTML = teamTag()+"<h2>"+fmt(t)+"</h2><button onclick='finishBD()'>Hotovo</button>"; }
+  window.finishBD = function() { send({station:9,answer:bdTime}); confirmScreen(); };
+
+  // --- 10 VIDEOHRY ---
+  function videohry() {
+    var st = loadState();
+    if (st && st.step==="running") { showVideohry(st.data.txt||""); return; }
+    app.innerHTML = teamTag()+"<h2>Videohry</h2><p>Rozpoznejte screenshoty her a zadejte odpovedi.</p><button onclick='startVideohry()'>Start</button>";
+  }
+  window.startVideohry = function() { saveState("running",{txt:""}); showVideohry(""); };
+  function showVideohry(saved) {
+    app.innerHTML = teamTag()+"<textarea id='vgInput' placeholder='hra1, hra2...'>"+saved+"</textarea><button onclick='finishVideohry()'>Hotovo</button>";
+    document.getElementById("vgInput").addEventListener("input", function(e){ saveState("running",{txt:e.target.value}); });
+  }
+  window.finishVideohry = function() { send({station:10,answer:document.getElementById("vgInput").value}); confirmScreen(); };
+
+  // --- 11 VLASTOVKA ---
+  function vlastovka() {
+    var st = loadState();
+    if (st && st.step==="running") { showVlastovka(); return; }
+    app.innerHTML = teamTag()+"<h2>Vlastovka</h2><p>Slozte vlastovku, ktera doletne nejdal.</p><button onclick='startVlastovka()'>Zacit</button>";
+  }
+  window.startVlastovka = function() { saveState("running"); showVlastovka(); };
+  function showVlastovka() { app.innerHTML = teamTag()+"<h2>Vlastovka</h2><p>Slozte a hodte vlastovku!</p><button onclick='finishVlastovka()'>Hotovo</button>"; }
+  window.finishVlastovka = function() { send({station:11,answer:"DONE"}); confirmScreen(); };
+
+  // --- 12 MATEMATIKA ---
+  var mathQ = [
+    "V mistnosti je 20 lidi a kazdy s kazdym si potrese rukou. Ke kolika potresenim rukou dojde?",
+    "Jak zmerite presne 4 litry vody, mate-li k dispozici pouze dve odmerne nadoby o objemu 5 a 3 litry?",
+    "Ktera tri kladna cisla maji stejny soucet i soucin?",
+    "Dve kachny stoji pred dvema jinymi kachnami, dve stoji za dvema jinymi a dve vedle dvou jinych. Kolik je kachen dohromady?",
+    "Muj otec mel 31 let, kdyz jsem mel ja 8. Ted je dvakrat tak stary jako ja. Kolik je mi let?",
+    "Kolik je 1/2 z 2/3 z 3/4 z 4/5 z 5/6 z 6/7 z 7/8 z 8/9 z 9/10 z 1000?",
+    "Je-li tataz kniha na polici ctvertou zleva a sestou zprava, kolik knih je na polici?",
+    "Pokud stojite 10 metru od dveri a s kazdym pohybem snizite vzdalenost o polovinu, po kolika pohybech se dostanete ke dverim?",
+    "Prvni vlak jede 60 km/hod, druhy 40 km/hod v opacnem smeru. Jak daleko budou od sebe hodinu pred setkánim?",
+    "Cislo X zdvojnásobime, vynasobime 4, vydelime 8 a dostaneme X. Jake je X?"
+  ];
+  var mI=0;
+  function matematikaIntro() {
+    var st = loadState();
+    if (st && st.step==="running") { mI=st.data.mI||0; showMath(); return; }
+    app.innerHTML = teamTag()+"<h2>Matematika</h2><p>10 matematickych hadanek. Papir je k dispozici.</p><button onclick='startMatematika()'>Start</button>";
+  }
+  window.startMatematika = function() { mI=0; saveState("running",{mI:0}); showMath(); };
+  function showMath() {
+    app.innerHTML = teamTag()+"<div class='progress'>"+(mI+1)+" / "+mathQ.length+"</div><div class='card'><p>"+mathQ[mI]+"</p></div><textarea id='mathInput' placeholder='Tvoje odpoved...'></textarea><button onclick='nextMath()'>Dalsi</button>";
+  }
+  window.nextMath = function() { send({station:12,question:mI+1,answer:document.getElementById("mathInput").value}); mI++; saveState("running",{mI:mI}); if(mI<mathQ.length)showMath(); else finishMath(); };
+  function finishMath() { app.innerHTML = teamTag()+"<h2>Mega smekam!</h2><button onclick='confirmScreen()'>Hotovo</button>"; }
+
+  // --- 13 ZAKLAD DNE ---
+  var zakladQ = [
+    "testoviny, zloutek, pancetta, parmezan, cerny pepr",
+    "cizrna, tahini, citron, cesnek, olivovy olej",
+    "hovezi maso, rajcata, fazole, chilli, kmin, (Kevin)",
+    "avokado, limetka, cesnek, koriandr, rajce",
+    "rajcata, mozzarella, bazalka, olivovy olej, balzamikovy ocet",
+    "kukuricna tortilla, veprove maso, syr, koriandr, salsa",
+    "mango, lepkava ryze, kokosove mleko, sezam, cukr",
+    "hovezi maso, korenova zelenina, smetana, citron, brusinky",
+    "veprove maso, zeli, knedliky, kmin, cibule",
+    "jehnneci maso, mrkev, cizrna, skorice, rozinky"
+  ];
+  var zI=0;
+  function zakladDneIntro() {
+    var st = loadState();
+    if (st && st.step==="running") { zI=st.data.zI||0; showZaklad(); return; }
+    app.innerHTML = teamTag()+"<h2>Zaklad dne</h2><p>Urcete jidlo podle ingredienci.</p><button onclick='startZaklad()'>Start</button>";
+  }
+  window.startZaklad = function() { zI=0; saveState("running",{zI:0}); showZaklad(); };
+  function showZaklad() {
+    app.innerHTML = teamTag()+"<div class='progress'>"+(zI+1)+" / "+zakladQ.length+"</div><div class='card'><p>"+zakladQ[zI]+"</p></div><textarea id='zakladInput' placeholder='Nazev jidla...'></textarea><button onclick='nextZaklad()'>Dalsi</button>";
+  }
+  window.nextZaklad = function() { send({station:13,question:zI+1,answer:document.getElementById("zakladInput").value}); zI++; saveState("running",{zI:zI}); if(zI<zakladQ.length)showZaklad(); else finishZaklad(); };
+  function finishZaklad() { app.innerHTML = teamTag()+"<h2>Hotovo!</h2><p>Dokoncili jste vsechny otazky.</p><button onclick='confirmScreen()'>Hotovo</button>"; }
+
+}); // konec DOMContentLoaded
+</script>
+</body>
+</html>
