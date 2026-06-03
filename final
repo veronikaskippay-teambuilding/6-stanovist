@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mozková olympiáda</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Luckiest+Guy&display=swap" rel="stylesheet">
+
+<style>
+body {
+  font-family: 'Poppins', sans-serif;
+  margin:0;
+  padding:12px;
+  background:#f5f5f5;
+  color:#1f4bc1;
+  max-width:480px;
+  margin:auto;
+}
+
+h2 {
+  font-family:'Luckiest Guy';
+  font-size:32px;
+}
+
+button {
+  background:#1f4bc1;
+  color:white;
+  border:none;
+  border-radius:20px;
+  padding:14px;
+  width:100%;
+  font-size:16px;
+  margin-top:8px;
+}
+
+textarea,input {
+  width:100%;
+  padding:12px;
+  font-size:16px;
+  border-radius:10px;
+  border:1px solid #ddd;
+}
+
+textarea{min-height:100px;}
+
+.team {
+  color:gray;
+  font-size:12px;
+}
+
+img {
+  width:100%;
+  max-width:300px;
+  border-radius:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="start">
+<h2>Mozková olympiáda</h2>
+<input id="teamInput" placeholder="Název týmu">
+<br><br>
+<button onclick="saveTeam()">Start</button>
+</div>
+
+<div id="app"></div>
+
+<script>
+
+const scriptURL="https://script.google.com/macros/s/AKfycbzVIxT_PPm6GRhmVuHvVA6UlFQI93FdNa7PqMkcAUXQRoOxhiwV59Wzbta9D9VWSO1cFQ/exec";
+
+let team=localStorage.getItem("team");
+const station=new URLSearchParams(window.location.search).get("station");
+
+function saveState(data){
+  localStorage.setItem("gameState", JSON.stringify(data));
+}
+
+function loadState(){
+  return JSON.parse(localStorage.getItem("gameState"));
+}
+
+function clearState(){
+  localStorage.removeItem("gameState");
+}
+
+if(team){ startApp(); }
+
+function saveTeam(){
+  team=document.getElementById("teamInput").value;
+  localStorage.setItem("team",team);
+  startApp();
+}
+
+function startApp(){
+  document.getElementById("start").style.display="none";
+
+  const state = loadState();
+  if(state){
+    restoreState(state);
+  } else {
+    runStation();
+  }
+}
+
+function runStation(){
+  if(station==1)slepec();
+  if(station==2)tichaPosta();
+  if(station==3)memoryRun();
+  if(station==4)puzzle();
+  if(station==5)plakat();
+  if(station==6)numberIntro();
+  if(station==7)geoIntro();
+  if(station==8)prisloviIntro();
+  if(station==9)bezDotyku();
+  if(station==10)videohry();
+  if(station==11)vlastovka();
+  if(station==12)matematikaIntro();
+  if(station==13)zakladDneIntro();
+}
+
+function restoreState(s){
+  switch(Number(s.station)){
+    case 1: s.running ? startSlepec(true,s.t) : slepec(); break;
+    case 2: tichaPosta(); break;
+    case 3: startMemory(true,s.t); break;
+    case 4: pTime=s.pTime||0; startPuzzle(true); break;
+    case 5: startPlakat(); break;
+    case 6: ni=s.ni||0; showNum(); break;
+    case 7: gi=s.gi||0; answers=s.answers||[]; showGeo(); break;
+    case 8: pi=s.pi||0; prisloviAnswers=s.answers||[]; showPrislovi(); break;
+    case 9: bdTime=s.t||0; startBD(true); break;
+    case 10: startVideohry(); break;
+    case 11: vlastovka(); break;
+    case 12: mI=s.mI||0; showMath(); break;
+    case 13: zI=s.zI||0; showZaklad(); break;
+  }
+}
+
+function send(data){
+  fetch(scriptURL,{
+    method:"POST",
+    mode:"no-cors",
+    body:JSON.stringify({team:team,...data})
+  });
+}
+
+function confirmScreen(){
+  clearState();
+  document.getElementById("app").innerHTML=`<h2>✅ Hotovo, tohle jste zvládli!</h2>`;
+}
+
+//////////////// SLEPEC
+let slepecTimer;
+function slepec(){
+  app.innerHTML=`<h3 class="team">Tým: ${team}</h3><h2>Slepec</h2>
+  <button onclick="startSlepec()">Start</button>`;
+}
+function startSlepec(r=false,t=240){
+  saveState({station:1,running:true,t});
+  app.innerHTML=`<h2 id="t"></h2>
+  <button onclick="finishSlepec()">Hotovo</button>`;
+  slepecTimer=setInterval(()=>{
+    t--; saveState({station:1,running:true,t});
+    tEl.innerText=Math.floor(t/60)+":"+(t%60<10?"0":"")+t%60;
+  },1000);
+}
+function finishSlepec(){
+  clearInterval(slepecTimer);
+  send({station:1,answer:"PHOTO"});
+  confirmScreen();
+}
+
+//////////////// TICHÁ POŠTA
+function tichaPosta(){
+  app.innerHTML=`<h3>${team}</h3><h2>Tichá pošta</h2>
+  <p>Kreslení na zádech spoluhráče.</p>
+  <input type="file" capture>
+  <button onclick="finishTP()">Hotovo</button>`;
+}
+function finishTP(){
+  send({station:2,answer:"PHOTO"});
+  confirmScreen();
+}
+
+//////////////// MEMORY
+let memTimer;
+function memoryRun(){
+  app.innerHTML=`<h3>${team}</h3><h2>Memory run</h2>
+  <button onclick="startMemory()">Start</button>`;
+}
+function startMemory(r=false,t=240){
+  saveState({station:3,t});
+  app.innerHTML=`<h2 id="mt"></h2>
+  <textarea id="txt"></textarea>
+  <button onclick="finishMemory()">Hotovo</button>`;
+  memTimer=setInterval(()=>{
+    t--; saveState({station:3,t});
+    mt.innerText=Math.floor(t/60)+":"+(t%60<10?"0":"")+t%60;
+  },1000);
+}
+function finishMemory(){
+  clearInterval(memTimer);
+  send({station:3,answer:txt.value});
+  confirmScreen();
+}
+
+//////////////// PUZZLE
+let pTime=0,pTimer;
+function puzzle(){
+  app.innerHTML=`<h3>${team}</h3><h2>Puzzle</h2>
+  <button onclick="startPuzzle()">Start</button>`;
+}
+function startPuzzle(){
+  saveState({station:4,pTime});
+  app.innerHTML=`<h2 id="pt"></h2>
+  <button onclick="stopPuzzle()">Stop</button>`;
+  pTimer=setInterval(()=>{
+    pTime++; saveState({station:4,pTime});
+    pt.innerText=Math.floor(pTime/60)+":"+(pTime%60<10?"0":"")+pTime%60;
+  },1000);
+}
+function stopPuzzle(){
+  clearInterval(pTimer);
+  app.innerHTML=`<h2>${pt.innerText}</h2>
+  <button onclick="finishPuzzle()">Hotovo</button>`;
+}
+function finishPuzzle(){
+  send({station:4,answer:pTime});
+  confirmScreen();
+}
+
+//////////////// PLAKÁT
+function plakat(){
+  app.innerHTML=`<h3>${team}</h3><h2>Plakát</h2>
+  <button onclick="startPlakat()">Start</button>`;
+}
+function startPlakat(){
+  app.innerHTML=`<textarea id="p"></textarea>
+  <button onclick="finishPlakat()">Hotovo</button>`;
+}
+function finishPlakat(){
+  send({station:5,answer:p.value});
+  confirmScreen();
+}
+
+//////////////// NUMBER
+const num=[
+"_ dalmatinů",
+"Fallout _",
+"Apollo _",
+"_ stupňů Fahrenheita",
+"_ Pilots",
+"_ rozhněvaných mužů",
+"Ocean's _",
+"Hlava _",
+"Maroon _",
+"_ věcí..."
+];
+let ni=0;
+
+function numberIntro(){
+  app.innerHTML=`<h3>${team}</h3><h2>Number</h2>
+  <button onclick="startNumber()">Start</button>`;
+}
+
+function startNumber(){
+  ni=0;
+  showNum();
+}
+
+function showNum(){
+  saveState({station:6,ni});
+
+  app.innerHTML=`
+  <h2>${ni+1}/10</h2>
+  <p>${num[ni]}</p>
+  <input type="number" id="n">
+  <button onclick="submitNum()">Další</button>`;
+}
+
+function submitNum(){
+  send({station:6,question:ni+1,answer:n.value});
+  ni++;
+
+  if(ni < num.length){
+    showNum();
+  } else {
+    confirmScreen();
+  }
+}
+
+//////////////// STÁTY
+const geo=[
+{img:'<img src="images/paraguay.png">',opt:['Paraguay','Chile','Peru','Bolívie']},
+{img:'<img src="images/vietnam.png">',opt:['Thajsko','Vietnam','Laos','Kambodža']},
+{img:'<img src="images/japonsko.png">',opt:['Filipíny','Japonsko','Indonésie','Korea']},
+{img:'<img src="images/chile.png">',opt:['Chile','Argentina','Peru','Brazílie']},
+{img:'<img src="images/severni-korea.png">',opt:['Jižní Korea','Čína','Severní Korea','Japonsko']},
+{img:'<img src="images/nizozemsko.png">',opt:['Belgie','Nizozemsko','Německo','Dánsko']},
+{img:'<img src="images/chorvatsko.png">',opt:['Řecko','Chorvatsko','Itálie','Albánie']},
+{img:'<img src="images/novy-zeland.png">',opt:['Austrálie','Nový Zéland','Fidži','Papua']},
+{img:'<img src="images/kuba.png">',opt:['Kuba','Jamajka','Haiti','Bahamy']},
+{img:'<img src="images/gronsko.png">',opt:['Island','Grónsko','Norsko','Kanada']}
+];
+let gi=0,answers=[];
+
+function geoIntro(){
+  app.innerHTML=`<h3>${team}</h3><h2>Státy</h2>
+  <button onclick="startGeo()">Start</button>`;
+}
+
+function startGeo(){
+  gi=0;
+  answers=[];
+  showGeo();
+}
+
+function showGeo(){
+
+  saveState({station:7,gi,answers});
+
+  let q=geo[gi];
+
+  app.innerHTML=`
+  <h2>${gi+1}/10</h2>
+  ${q.img}<br><br>
+  ${q.opt.map(o=>`<button onclick="ansGeo('${o}')">${o}</button>`).join("")}`;
+}
+
+function ansGeo(a){
+  answers.push(a);
+  gi++;
+
+  if(gi < geo.length){
+    showGeo();
+  } else {
+    finishGeo();
+  }
+}
+
+function finishGeo(){
+  answers.forEach((a,i)=>
+    send({station:7,question:i+1,answer:a})
+  );
+  confirmScreen();
+}
+
+//////////////// PŘÍSLOVÍ
+const prislovi=[
+"images/nekdo-rad-holky-jinej-zas-vdolky.png",
+"images/my-o-vlku-a-vlk-za-dvermi.png",
+"images/muj-dum-muj-hrad.png",
+"images/kovarovic-kobyla-chodi-bosa.png",
+"images/kdyz-ne-po-dobru-tak-po-zlu.png",
+"images/kam-cert-nemuze-nastrci-zenskou.png",
+"images/jedna-vlastovka-jaro-nedela.png",
+"images/co-na-srdci-to-na-jazyku.png",
+"images/co-se-v-mladi-naucis-ve-stari-jako-kdyz-najdes.png",
+"images/bez-prace-nejsou-kolace.png"
+];
+
+let pi=0;
+let prisloviAnswers=[];
+
+function prisloviIntro(){
+  app.innerHTML=`<h3>${team}</h3><h2>Přísloví</h2>
+  <button onclick="startPrislovi()">Start</button>`;
+}
+
+function startPrislovi(){
+  pi=0;
+  prisloviAnswers=[];
+  showPrislovi();
+}
+
+function showPrislovi(){
+
+  saveState({station:8,pi,answers:prisloviAnswers});
+
+  app.innerHTML=`
+  <h2>${pi+1}/10</h2>
+  <img src="${prislovi[pi]}">
+  <input id="prInput" placeholder="Zadej přísloví">
+  <button onclick="nextPrislovi()">Další</button>`;
+}
+
+function nextPrislovi(){
+  prisloviAnswers.push(prInput.value);
+  pi++;
+
+  if(pi < prislovi.length){
+    showPrislovi();
+  } else {
+    finishPrislovi();
+  }
+}
+
+function finishPrislovi(){
+  prisloviAnswers.forEach((a,i)=>
+    send({station:8,question:i+1,answer:a})
+  );
+  confirmScreen();
+}
+
+//////////////// BEZ DOTYKU
+let bdTime=0,bdTimer;
+
+function bezDotyku(){
+  app.innerHTML=`<h3>${team}</h3><h2>Bez dotyku</h2>
+  <button onclick="startBD()">Start</button>`;
+}
+
+function startBD(){
+  saveState({station:9,t:bdTime});
+
+  app.innerHTML=`
+  <h2 id="bdTimer"></h2>
+  <button onclick="stopBD()">Stop</button>`;
+
+  bdTimer=setInterval(()=>{
+    bdTime++;
+    saveState({station:9,t:bdTime});
+
+    bdTimerEl.innerText=
+      Math.floor(bdTime/60)+":"+(bdTime%60<10?"0":"")+bdTime%60;
+  },1000);
+}
+
+function stopBD(){
+  clearInterval(bdTimer);
+
+  app.innerHTML=`
+  <h2>${Math.floor(bdTime/60)}:${bdTime%60}</h2>
+  <button onclick="finishBD()">Hotovo</button>`;
+}
+
+function finishBD(){
+  send({station:9,answer:bdTime});
+  confirmScreen();
+}
+
+//////////////// VIDEOHRY
+function videohry(){
+  app.innerHTML=`
+  <h3>${team}</h3>
+  <h2>Videohry</h2>
+  <p>Rozpoznat screenshoty a zadat odpovědi ve správném pořadí.</p>
+  <button onclick="startVideohry()">Start</button>`;
+}
+
+function startVideohry(){
+  saveState({station:10});
+
+  app.innerHTML=`
+  <h3>${team}</h3>
+  <textarea id="vgInput" placeholder="hra1, hra2..."></textarea>
+  <button onclick="finishVideohry()">Hotovo</button>`;
+}
+
+function finishVideohry(){
+  send({
+    station:10,
+    answer:vgInput.value
+  });
+  confirmScreen();
+}
+
+//////////////// VLAŠTOVKA
+function vlastovka(){
+  app.innerHTML=`
+  <h3>${team}</h3>
+  <h2>Vlaštovka</h2>
+  <p>Složit vlaštovku, která dolétne nejdál.</p>
+  <button onclick="finishVlastovka()">Hotovo</button>`;
+}
+
+function finishVlastovka(){
+  send({station:11,answer:"DONE"});
+  confirmScreen();
+}
+
+//////////////// MATEMATIKA
+const mathQ = [
+"V místnosti je 20 lidí a každý s každým si potřese rukou. Ke kolika potřesením rukou dojde?",
+"Jak změříte přesně 4 litry vody, máte-li k dispozici pouze dvě odměrné nádoby o objemu 5 a 3 litry?",
+"Která tři kladná čísla mají stejný součet i součin?",
+"Dvě kachny stojí před dvěma jinými kachnami, dvě stojí za dvěma jinými a dvě vedle dvou jiných. Kolik je kachen dohromady?",
+"Můj otec měl 31 let, když jsem měl já 8. Teď je dvakrát tak starý jako já. Kolik je mi let?",
+"Kolik je 1/2 z 2/3 z 3/4 z 4/5 z 5/6 z 6/7 z 7/8 z 8/9 z 9/10 z 1000?",
+"Je-li tatáž kniha na poličce čtvrtou zleva a šestou zprava, kolik knih je na poličce?",
+"Pokud stojíte 10 metrů od dveří a s každým pohybem směrem k nim snížíte vzdálenost o polovinu, po kolika pohybech se dostanete ke dveřím?",
+"První vlak jede z bodu A do bodu B konstantní rychlostí 60 km/hod, druhý z bodu B do bodu A konstantní rychlostí 40 km/hod. Jak daleko budou vlaky od sebe vzdáleny hodinu před tím, než se setkají?",
+"Číslo X zdvojnásobíme, poté výsledek vynásobíme číslem 4, následně vydělíme číslem 8 a dostaneme opět číslo X. Jaké je X?"
+];
+
+let mI=0;
+
+function matematikaIntro(){
+  app.innerHTML=`
+  <h3>${team}</h3>
+  <h2>Matematika</h2>
+  <p>Čeká na tebe 10 matematických hádanek. Není časový limit.</p>
+  <button onclick="startMatematika()">Start</button>`;
+}
+
+function startMatematika(){
+  mI=0;
+  showMath();
+}
+
+function showMath(){
+
+  saveState({station:12,mI});
+
+  app.innerHTML=`
+  <h3>${team}</h3>
+  <h2>${mI+1}/10</h2>
+  <p>${mathQ[mI]}</p>
+  <textarea id="mathInput"></textarea>
+  <button onclick="nextMath()">Další</button>`;
+}
+
+function nextMath(){
+  send({
+    station:12,
+    question:mI+1,
+    answer:mathInput.value
+  });
+
+  mI++;
+
+  if(mI < mathQ.length){
+    showMath();
+  } else {
+    finishMath();
+  }
+}
+
+function finishMath(){
+  app.innerHTML=`
+  <h2>Super práce!</h2>
+  <button onclick="confirmScreen()">Hotovo</button>`;
+}
+
+//////////////// ZÁKLAD DNE
+const zakladQ=[
+"těstoviny, žloutek, pancetta, parmezán, černý pepř",
+"cizrna, tahini, citron, česnek, olivový olej",
+"hovězí maso, rajčata, fazole, chilli, kmín",
+"avokádo, limetka, česnek, koriandr, rajče",
+"rajčata, mozzarella, bazalka, olivový olej",
+"kukuřičná tortilla, vepřové maso, sýr, koriandr",
+"mango, lepkavá rýže, kokosové mléko, sezam",
+"hovězí maso, kořenová zelenina, smetana, citron",
+"vepřové maso, zelí, knedlíky",
+"jehněčí maso, mrkev, cizrna, skořice"
+];
+
+let zI=0;
+
+function zakladDneIntro(){
+  app.innerHTML=`
+  <h3>${team}</h3>
+  <h2>Základ dne</h2>
+  <p>Podle ingrediencí určete jídlo.</p>
+  <button onclick="startZaklad()">Start</button>`;
+}
+
+function startZaklad(){
+  zI=0;
+  showZaklad();
+}
+
+function showZaklad(){
+
+  saveState({station:13,zI});
+
+  app.innerHTML=`
+  <h3>${team}</h3>
+  <h2>${zI+1}/10</h2>
+  <p>${zakladQ[zI]}</p>
+  <textarea id="zakladInput"></textarea>
+  <button onclick="nextZaklad()">Další</button>`;
+}
+
+function nextZaklad(){
+
+  send({
+    station:13,
+    question:zI+1,
+    answer:zakladInput.value
+  });
+
+  zI++;
+
+  if(zI < zakladQ.length){
+    showZaklad();
+  } else {
+    finishZaklad();
+  }
+}
+
+function finishZaklad(){
+  app.innerHTML=`
+  <h2>Hotovo!</h2>
+  <button onclick="confirmScreen()">Hotovo</button>`;
+}
+
+</script>
+</body>
+</html>
